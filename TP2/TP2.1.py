@@ -17,18 +17,19 @@ def menu():
         elif opc == 3:
             random_py()
 
-def pruebas(nums):
+def pruebas(uis):
     rta = 5
     while rta != 0:
         rta = int(input('\nPruebas: \n1. Chi-cuadrado \n2. de Series \n3. Kolmogorov Smirnov \n0. Volver al menu principal \nIngrese una opción: '))
         if rta == 1:
-            test_chi2(nums)
+            test_chi2(uis)
         elif rta == 2:
-            test_series(nums)
+            test_series(uis)
         elif rta == 3:
-            test_ks(nums)
+            test_ks(uis)
 
 def mid_square():
+    print('\nGenerador Cuadrado de los Medios')
     dus = []
     seeds = []
     nums = []
@@ -47,20 +48,21 @@ def mid_square():
     print('\nNúmeros generados: {}\nSemillas: {}\nDistribucion: {}'.format(nums,seeds,dus))
 
 def gcl():
-    dus = []
+    uis = []
     nums = []
-    print('\nGenerador Congruencial: Xi = (a * Xi-1 + c) mod m')
-    seed = int(input('Ingrese valor de la semilla: '))
+    print('\nGenerador Congruencial Lineal')
     a = int(input('Ingrese el valor de a: '))
+    seed = int(input('Ingrese valor de la semilla: '))
     c = int(input('Ingrese el valor de c: '))
     m = int(input('Ingrese el valor de m: '))
     nums.append(seed)
+    uis.append(seed/m)
     x = ((a * seed) + c) % m
     while x != seed:
-        dus.append(x/m)
+        uis.append(x/m)
         nums.append(x)
         x = ((a * x) + c) % m
-    print('\nNúmeros generados: {}\nDistribucion: {}'.format(nums,dus))
+    print('\nNúmeros generados: {}\nDistribucion: {}'.format(nums,uis))
     maximo = max(nums)
     for i in range(0,len(nums)):
         nums[i] = (nums[i]/maximo)
@@ -69,48 +71,111 @@ def gcl():
     else:
         print('El periodo es incompleto')
 
-    pruebas(nums)
+    pruebas(uis)
 
 def random_py():
     nums = []
     print('\nGenerador de Python')
     seed = int(input('Ingrese valor de la semilla: '))
+    n = int(input('Ingrese cantidad de numeros a generar: '))
     random.seed(seed)
-    for i in range(100):
+    for i in range(n):
         num = random.random()
         nums.append(num)
     print(nums)
-    '''hist(nums)
-    plt.ylabel('frequencia')
-    plt.xlabel('valores')
-    plt.title('Histograma Uniforme')
-    show()'''
 
     pruebas(nums)
 
-def test_chi2(nums):
-    print('\nPrueba Chi-Cuadrado: χ2 = k/n * Σ(fj - n/k)^2')
+def test_chi2(uis):
+    print('\nPrueba Chi-Cuadrado')
     k = 10
     freqs = [0 for i in range(k)]
     for i in range(1,k+1):
         max = i/k
         min = max - (1/k)
-        for n in nums:
-            if n < max and n >= min:
+        for u in uis:
+            if u < max and u >= min:
                 #Si el numero esta en el rango, sumamos 1 a la frecuencia de ese rango
                 freqs[i-1] += 1
     #χ2 = k/n * Σ(fj - n/k)^2
-    n = len(nums)
+    n = len(uis)
     chi2exp = (k/n) * sum([(i-(n/k))**2 for i in freqs])
     print('χ2 experimento:', chi2exp)
 
     #alfa=0.05, 95%, grados de libertad=k-1
     chi_tabla = chi2.isf(0.05, k-1)
     print('χ2 critico:', chi_tabla)
+    print('Frecuencias:', freqs)
+
     if (chi2exp < chi_tabla):
         print('\nLa hipótesis nula es aceptada. La distribución es uniforme según prueba de Chi-Cuadrado')
     else:
-        print('\nLa hipótesis nula no es aceptada. La distribución no es uniforme según prueba de Chi-Cuadrado')
+        print('\nLa hipótesis nula es rechazada. La distribución no es uniforme según prueba de Chi-Cuadrado')
+
+def test_series(uis):
+    print('\nPrueba de Series')
+    k = int(math.sqrt(len(uis)))
+
+    #Calculamos frecuencias absolutas. Crear el array bidimensional de las celdas con sus frecuencias
+    freqs = [[0 for i in range(k)] for j in range(k)]
+    fr_int = []
+
+    #Para cada par de rangos (i,j)
+    for i in range(1,k+1):
+        maxI = i/k
+        minI = maxI - (1/k)
+        for j in range(1,k+1):
+            maxJ = j/k
+            minJ = maxJ - (1/k)
+            for u in range(0, len(uis)-1):
+                if uis[u] < maxI and uis[u] >= minI and uis[u+1] < maxJ and uis[u+1] >= minJ:
+                #Si el primer elemento esta en el rango i, y el segundo en el j,
+                #sumamos 1 a la frecuencia de esos rangos
+                    freqs[i-1][j-1]+=1
+    for j in range(0,k):
+        cont = 0
+        for i in range(0,k):
+            cont += freqs[i][j]
+        fr_int.append(cont)
+
+    #χ2 = k/n * Σ(fj - n/k)^2
+    n = len(uis)
+    fe = (n-1)/k
+    chi2exp = (1/fe) * sum([(i-fe)**2 for i in fr_int])
+
+    print('χ2 experimento:', chi2exp)
+
+    chi_tabla = chi2.isf(0.05, k-1)
+    print('χ2 critico:', chi_tabla)
+    print('Frecuencias en cada celda:', freqs)
+    print("Frecuencia observada en cada intervalo: ",fr_int)
+    if (chi2exp < chi_tabla):
+        print('\nLa hipótesis nula es aceptada. Los numeros son independientes según la prueba de Series')
+    else:
+        print('\nLa hipótesis nula es rechazada. Los numeros no son independientes según la prueba de Series')
+
+def test_ks(uis):
+    print("\nPrueba Kolmogorov-Smirnov")
+    nums = sorted(uis)
+    print(nums)
+    n = len(nums)
+    dmas = []
+    dmenos = []
+    for i in range(1,n):
+        d1 = i/n - nums[i-1]
+        d2 = nums[i-1] - (i-1)/n
+        dmas.append(d1)
+        dmenos.append(d2)
+    dmas_max = max(dmas)
+    dmenos_max = max(dmenos)
+    d = max(dmas_max,dmenos_max)
+    k = math.sqrt(n) + 0.12 + (0.11/math.sqrt(n))
+    d_ks = 1.358/k  #grado de confianza de 95%-- valor sacado de la tabla
+    print('D = {}\nD tabla = {}'.format(d,d_ks))
+    if d > d_ks:
+        print("Los numeros no siguen una distribucion uniforme según la prueba Kolmogorov Smirnov")
+    else:
+        print("Los numeros siguen una distribucion uniforme según la prueba Kolmogorov Smirnov")
 
 
 menu()
