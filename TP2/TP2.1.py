@@ -20,13 +20,15 @@ def menu():
 def pruebas(uis):
     rta = 5
     while rta != 0:
-        rta = int(input('\nPruebas: \n1. Chi-cuadrado \n2. de Series \n3. Kolmogorov Smirnov \n0. Volver al menu principal \nIngrese una opción: '))
+        rta = int(input('\nPruebas: \n1. Chi-cuadrado \n2. de Series \n3. Kolmogorov Smirnov \n4. de Huecos\n0. Volver al menu principal \nIngrese una opción: '))
         if rta == 1:
             test_chi2(uis)
         elif rta == 2:
             test_series(uis)
         elif rta == 3:
             test_ks(uis)
+        elif rta == 4:
+            test_huecos(uis)
 
 def mid_square():
     print('\nGenerador Cuadrado de los Medios')
@@ -63,9 +65,6 @@ def gcl():
         nums.append(x)
         x = ((a * x) + c) % m
     print('\nNúmeros generados: {}\nDistribucion: {}'.format(nums,uis))
-    maximo = max(nums)
-    for i in range(0,len(nums)):
-        nums[i] = (nums[i]/maximo)
     if (len(nums) == m):
         print('El periodo es completo')
     else:
@@ -104,7 +103,7 @@ def test_chi2(uis):
 
     #alfa=0.05, 95%, grados de libertad=k-1
     chi_tabla = chi2.isf(0.05, k-1)
-    print('χ2 critico:', chi_tabla)
+    print('χ2 crítico:', chi_tabla)
     print('Frecuencias:', freqs)
 
     if (chi2exp < chi_tabla):
@@ -146,13 +145,13 @@ def test_series(uis):
     print('χ2 experimento:', chi2exp)
 
     chi_tabla = chi2.isf(0.05, k-1)
-    print('χ2 critico:', chi_tabla)
+    print('χ2 crítico:', chi_tabla)
     print('Frecuencias en cada celda:', freqs)
     print("Frecuencia observada en cada intervalo: ",fr_int)
     if (chi2exp < chi_tabla):
-        print('\nLa hipótesis nula es aceptada. Los numeros son independientes según la prueba de Series')
+        print('\nLa hipótesis nula es aceptada. Los números son independientes según la prueba de Series')
     else:
-        print('\nLa hipótesis nula es rechazada. Los numeros no son independientes según la prueba de Series')
+        print('\nLa hipótesis nula es rechazada. Los números no son independientes según la prueba de Series')
 
 def test_ks(uis):
     print("\nPrueba Kolmogorov-Smirnov")
@@ -161,11 +160,11 @@ def test_ks(uis):
     n = len(nums)
     dmas = []
     dmenos = []
-    for i in range(1,n):
-        d1 = i/n - nums[i-1]
-        d2 = nums[i-1] - (i-1)/n
-        dmas.append(d1)
-        dmenos.append(d2)
+    for i in range(1,n+1):
+        d1 = (i/n) - nums[i-1]
+        d2 = nums[i-1] - ((i-1)/n)
+        dmas.append(math.fabs(d1))
+        dmenos.append(math.fabs(d2))
     dmas_max = max(dmas)
     dmenos_max = max(dmenos)
     d = max(dmas_max,dmenos_max)
@@ -173,9 +172,62 @@ def test_ks(uis):
     d_ks = 1.358/k  #grado de confianza de 95%-- valor sacado de la tabla
     print('D = {}\nD tabla = {}'.format(d,d_ks))
     if d > d_ks:
-        print("Los numeros no siguen una distribucion uniforme según la prueba Kolmogorov Smirnov")
+        print("\nLos números no siguen una distribución uniforme según la prueba Kolmogorov Smirnov")
     else:
-        print("Los numeros siguen una distribucion uniforme según la prueba Kolmogorov Smirnov")
+        print("\nLos números siguen una distribución uniforme según la prueba Kolmogorov Smirnov")
+
+def test_huecos(uis):
+    print('\nPrueba de Huecos')
+    posiciones = []
+    for u in uis:
+        if u >= 0 and u < 0.5:
+            posiciones.append(1)
+        else:
+            posiciones.append(0)
+    print('Arreglo de posiciones:', posiciones)
+    huecos = []
+    cont = 0
+    for i in range(len(posiciones)-1):
+        if posiciones[i] == 1:
+            for j in range(i+1, len(posiciones)):
+                if posiciones[j] == 1:
+                    huecos.append(cont)
+                    cont = 0
+                else:
+                    cont += 1
+            break
+    if len(huecos) == 0:
+        print('\nNo se puede realizar la prueba. No hay números que pertenezcan al intervalo [0, 0.5)')
+    else:
+        print('Longitudes de los huecos:', huecos)
+        hueco_max = max(huecos)
+        if hueco_max > 10:
+            hueco_max = 10
+        print('Hueco máximo:', hueco_max)
+        freq_obs = []
+        for i in range(hueco_max+1):
+            cont = 0
+            for h in huecos:
+                if h == i:
+                    cont += 1
+            freq_obs.append(cont)
+        print('Frecuencias observadas:', freq_obs)
+        freq_esp = []
+        for i in range(hueco_max):
+            freq_esp.append((1 - 0.5)**i * 0.5 * sum(freq_obs))
+        freq_esp.append((1 - 0.5)**hueco_max * sum(freq_obs))
+        print('Frecuencias esperadas:', freq_esp)
+        if len(freq_obs)==1 and len(freq_esp) and int(freq_esp[0]) == freq_obs[0]:
+            print('\nLa hipótesis nula es aceptada. Los números son independientes según prueba de Huecos')
+        else:
+            chi2exp = sum([(freq_esp[i] - freq_obs[i])**2 / freq_esp[i] for i in range(hueco_max+1)])
+            print('χ2 experimento:', chi2exp)
+            chi_tabla = chi2.isf(0.05, hueco_max-1)
+            print('χ2 crítico:', chi_tabla)
+            if (chi2exp < chi_tabla):
+                print('\nLa hipótesis nula es aceptada. Los números son independientes según prueba de Huecos')
+            else:
+                print('\nLa hipótesis nula es rechazada. Los números no son independientes según prueba de Huecos')
 
 
 menu()
