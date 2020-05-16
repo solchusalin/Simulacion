@@ -2,6 +2,7 @@ import random
 import math
 import matplotlib.pyplot as plt
 from scipy.stats import chi2
+import numpy as np
 from matplotlib.pylab import hist, show
 import statistics as stats
 import collections
@@ -16,6 +17,7 @@ def menu():
             gcl()
         elif opc == 3:
             random_py()
+    plt.show()
 
 def pruebas(uis):
     rta = 5
@@ -32,10 +34,11 @@ def pruebas(uis):
 
 def mid_square():
     print('\nGenerador Cuadrado de los Medios')
-    dus = []
+    uis = []
     seeds = []
     nums = []
     seed = int(input("Ingrese una semilla de 4 numeros: "))
+    seed_ini = seed
     n = int(input("Ingrese cantidad de numeros a generar: "))
     for i in range(n):
         x = seed ** 2
@@ -45,9 +48,29 @@ def mid_square():
         xlist = list(str(x)) 		#convierto a lista para extraer despues las posiciones q necesito
         new_seed = xlist[2:-2]	#guardo los 4 digitos centrales
         seed = int(''.join(new_seed)) #paso lista a numero
-        dus.append(seed/10000)
+        uis.append(seed/10000)
         seeds.append(seed)
-    print('\nNúmeros generados: {}\nSemillas: {}\nDistribucion: {}'.format(nums,seeds,dus))
+    print('\nNúmeros generados: {}\nSemillas: {}'.format(nums,seeds))
+
+    values = []
+    maxi = max(nums)
+    for i in range(0, n-1):
+        values.append(nums[i]/maxi)
+
+    '''plt.title('Generador Middle Square')
+    plt.xlabel('Values')
+    plt.ylabel('Values')
+    plt.scatter(values, values, label="Seed={}, n={}" .format(seed_ini, n))
+    plt.legend(prop = {'size': 7})
+    plt.show()
+
+    plt.title('Generador Middle Square')
+    plt.xlabel('N')
+    plt.ylabel('Values')
+    plt.plot(values, label="MS - Seed={}, n={}" .format(seed_ini, n))
+    plt.plot(uis, label='Seeds')
+    plt.legend(prop = {'size': 7})
+    plt.show()'''
 
 def gcl():
     uis = []
@@ -70,6 +93,21 @@ def gcl():
     else:
         print('El periodo es incompleto')
 
+    '''plt.title('Generador Congruencial Lineal')
+    plt.xlabel('Values')
+    plt.ylabel('Values')
+    plt.scatter(uis, uis, label='a={}, seed={}, c={}, m={}'.format(a,seed,c,m))
+    plt.legend(prop = {'size': 7})
+    plt.show()
+
+    plt.title('Generador Congruencial Lineal')
+    plt.xlabel('N')
+    plt.ylabel('Values')
+    plt.plot(uis, label='GCL - a={}, seed={}, c={}, m={}'.format(a,seed,c,m))
+    plt.legend(prop = {'size': 7})
+    plt.show()'''
+
+
     pruebas(uis)
 
 def random_py():
@@ -82,6 +120,20 @@ def random_py():
         num = random.random()
         nums.append(num)
     print(nums)
+
+    '''plt.title('Generador de Python')
+    plt.xlabel('Values')
+    plt.ylabel('Values')
+    plt.scatter(nums, nums, label='Seed={}, n={}'.format(seed,n))
+    plt.legend(prop = {'size': 7})
+    plt.show()
+
+    plt.title('Generador de Python')
+    plt.xlabel('N')
+    plt.ylabel('Values')
+    plt.plot(nums, label='GP - Seed={}, n={}'.format(seed,n))
+    plt.legend(prop = {'size': 7})
+    plt.show()'''
 
     pruebas(nums)
 
@@ -110,6 +162,15 @@ def test_chi2(uis):
         print('\nLa hipótesis nula es aceptada. La distribución es uniforme según prueba de Chi-Cuadrado')
     else:
         print('\nLa hipótesis nula es rechazada. La distribución no es uniforme según prueba de Chi-Cuadrado')
+
+    '''x1 = range(0, k)
+    plt.plot([n/k for i in x1], label="FR Esperada")
+    plt.scatter(x1, freqs, color='red', label="FR Observada")
+    plt.legend(loc="upper right")
+    plt.xlabel('N')
+    plt.ylabel('Frecuencia Absoluta')
+    plt.title('Prueba de Chi-Cuadrado')
+    plt.show()'''
 
 def test_series(uis):
     print('\nPrueba de Series')
@@ -152,6 +213,15 @@ def test_series(uis):
         print('\nLa hipótesis nula es aceptada. Los números son independientes según la prueba de Series')
     else:
         print('\nLa hipótesis nula es rechazada. Los números no son independientes según la prueba de Series')
+
+    '''x1 = range(0, k)
+    plt.plot([fe for i in x1], label="FR Esperada")
+    plt.scatter(x1, fr_int, color='red', label="FR Observada")
+    plt.legend(loc="upper right")
+    plt.xlabel('N')
+    plt.ylabel('Frecuencia Absoluta')
+    plt.title('Prueba de Series')
+    plt.show()'''
 
 def test_ks(uis):
     print("\nPrueba Kolmogorov-Smirnov")
@@ -228,6 +298,15 @@ def test_huecos(uis):
                 print('\nLa hipótesis nula es aceptada. Los números son independientes según prueba de Huecos')
             else:
                 print('\nLa hipótesis nula es rechazada. Los números no son independientes según prueba de Huecos')
+
+        x1 = range(0, hueco_max+1)
+        plt.title('Prueba de Huecos')
+        plt.plot(x1, freq_esp, label="FR Esperada")
+        plt.scatter(x1, freq_obs, color='red', label="FR Observada")
+        plt.legend(loc="upper right")
+        plt.xlabel('N')
+        plt.ylabel('Frecuencia Absoluta')
+        plt.show()
 
 
 menu()
