@@ -2,10 +2,7 @@ import random
 import math
 import matplotlib.pyplot as plt
 from scipy.stats import chi2
-import numpy as np
-from matplotlib.pylab import hist, show
-import statistics as stats
-import collections
+
 
 def menu():
     opc = 5
@@ -17,7 +14,7 @@ def menu():
             gcl()
         elif opc == 3:
             random_py()
-    plt.show()
+    #plt.show()
 
 def pruebas(uis):
     rta = 5
@@ -57,7 +54,17 @@ def mid_square():
     for i in range(0, n-1):
         values.append(nums[i]/maxi)
 
-    '''plt.title('Generador Middle Square')
+    plot_ms(values, seed_ini, n, uis)
+
+def plot_ms(values, seed_ini, n, uis):
+    plt.figure(figsize=(10,4))
+    plt.suptitle('Graficas - Generador Middle Square')
+    plt.subplot(1,2,1)
+    plt.xlabel('N')
+    plt.ylabel('Values')
+    plt.scatter(range(0, len(values)), values, label="Seed={}, n={}" .format(seed_ini, n))
+    plt.legend(prop = {'size': 7})
+    plt.subplot(1,2,2)
     plt.xlabel('Values')
     plt.ylabel('Values')
     plt.scatter(values, values, label="Seed={}, n={}" .format(seed_ini, n))
@@ -70,7 +77,7 @@ def mid_square():
     plt.plot(values, label="MS - Seed={}, n={}" .format(seed_ini, n))
     plt.plot(uis, label='Seeds')
     plt.legend(prop = {'size': 7})
-    plt.show()'''
+    plt.show()
 
 def gcl():
     uis = []
@@ -93,7 +100,19 @@ def gcl():
     else:
         print('El periodo es incompleto')
 
-    '''plt.title('Generador Congruencial Lineal')
+    plot_gcl(uis, a, seed, c, m)
+    pruebas(uis)
+
+def plot_gcl(uis, a, seed, c, m):
+
+    plt.figure(figsize=(10,4))
+    plt.suptitle('Graficas - Generador Congruencial Lineal')
+    plt.subplot(1,2,1)
+    plt.xlabel('N')
+    plt.ylabel('Values')
+    plt.scatter(range(0, len(uis)), uis, label='a={}, seed={}, c={}, m={}'.format(a,seed,c,m))
+    plt.legend(prop = {'size': 7})
+    plt.subplot(1,2,2)
     plt.xlabel('Values')
     plt.ylabel('Values')
     plt.scatter(uis, uis, label='a={}, seed={}, c={}, m={}'.format(a,seed,c,m))
@@ -105,10 +124,7 @@ def gcl():
     plt.ylabel('Values')
     plt.plot(uis, label='GCL - a={}, seed={}, c={}, m={}'.format(a,seed,c,m))
     plt.legend(prop = {'size': 7})
-    plt.show()'''
-
-
-    pruebas(uis)
+    plt.show()
 
 def random_py():
     nums = []
@@ -121,7 +137,19 @@ def random_py():
         nums.append(num)
     print(nums)
 
-    '''plt.title('Generador de Python')
+    plot_gpy(nums, seed, n)
+    pruebas(nums)
+
+def plot_gpy(nums, seed, n):
+
+    plt.figure(figsize=(10,4))
+    plt.suptitle('Graficas - Generador Python')
+    plt.subplot(1,2,1)
+    plt.xlabel('N')
+    plt.ylabel('Values')
+    plt.scatter(range(0, len(nums)), nums, label='Seed={}, n={}'.format(seed,n))
+    plt.legend(prop = {'size': 7})
+    plt.subplot(1,2,2)
     plt.xlabel('Values')
     plt.ylabel('Values')
     plt.scatter(nums, nums, label='Seed={}, n={}'.format(seed,n))
@@ -133,9 +161,7 @@ def random_py():
     plt.ylabel('Values')
     plt.plot(nums, label='GP - Seed={}, n={}'.format(seed,n))
     plt.legend(prop = {'size': 7})
-    plt.show()'''
-
-    pruebas(nums)
+    plt.show()
 
 def test_chi2(uis):
     print('\nPrueba Chi-Cuadrado')
