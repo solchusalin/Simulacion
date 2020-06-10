@@ -5,15 +5,23 @@ import numpy as np
 
 
 def menu():
+    eos_uni, vos_uni = [], []
+    eos_exp, vos_exp = [], []
+    eos_gam, vos_gam = [], []
+    eos_nor, vos_nor = [], []
+    eos_bi, vos_bi = [], []
+    eos_hip, vos_hip = [], []
+    eos_poi, vos_poi = [], []
+    eos_emp, vos_emp = [], []
     for j in range(5):  #corridas del programa
-        nros_uni, eos_uni, vos_uni = [], [], []
-        nros_exp, eos_exp, vos_exp = [], [], []
-        nros_ga, eos_gam, vos_gam = [], [], []
-        nros_nor, eos_nor, vos_nor = [], [], []
-        nros_bi, eos_bi, vos_bi = [], [], []
-        nros_hip, eos_hip, vos_hip = [], [], []
-        nros_poi, eos_poi, vos_poi = [], [], []
-        nros_emp, eos_emp, vos_emp = [], [], []
+        nros_uni = []
+        nros_exp = []
+        nros_ga = []
+        nros_nor = []
+        nros_bi = []
+        nros_hip = []
+        nros_poi = []
+        nros_emp = []
         for i in range(2000):
             x = uniforme(1, 20)
             nros_uni.append(x)
@@ -67,24 +75,26 @@ def menu():
 
 
 def graficar(nombre, ee, ve, eo, vo):
-    esperanzas = [[ee, ee, ee, ee], eo]
-    X = np.arange(4)
+    esperanzas = [[ee, ee, ee, ee, ee], [eo[0], eo[1], eo[2], eo[3], eo[4]]]
+    X = np.arange(5)
     plt.title("Gráfico de Esperanzas - Distribución " + nombre)   # Establece el título del gráfico
     plt.xlabel("Corridas")   # Establece el título del eje x
     plt.ylabel("EX")   # Establece el título del eje y
-    plt.bar(X + 0.00, esperanzas[0], color = "g", width = 0.25)
-    plt.bar(X + 0.25, esperanzas[1], color = "b", width = 0.25)
-    plt.xticks(X + 0.15, ["1","2","3","4"])
+    plt.bar(X + 0.00, esperanzas[0], label = "EX Esperada", color = "g", width = 0.25)
+    plt.bar(X + 0.25, esperanzas[1], label = "EX Observada", color = "b", width = 0.25)
+    plt.xticks(X + 0.15, ["1","2","3","4","5"])
+    plt.legend(loc='lower right', prop={'size': 7})
     plt.show()
 
-    varianzas = [[ve, ve, ve, ve], vo]
-    X = np.arange(4)
+    varianzas = [[ve, ve, ve, ve, ve], vo]
+    X = np.arange(5)
     plt.title("Gráfico de Varianzas - Distribución " + nombre)   # Establece el título del gráfico
     plt.xlabel("Corridas")   # Establece el título del eje x
     plt.ylabel("VX")   # Establece el título del eje y
-    plt.bar(X + 0.00, varianzas[0], color = "r", width = 0.25)
-    plt.bar(X + 0.25, varianzas[1], color = "b", width = 0.25)
-    plt.xticks(X + 0.15, ["1","2","3","4"])
+    plt.bar(X + 0.00, varianzas[0], label = "VX Esperada", color = "r", width = 0.25)
+    plt.bar(X + 0.25, varianzas[1], label = "VX Observada", color = "b", width = 0.25)
+    plt.xticks(X + 0.15, ["1","2","3","4","5"])
+    plt.legend(loc='lower right', prop={'size': 7})
     plt.show()
 
 
