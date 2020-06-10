@@ -14,6 +14,7 @@ def menu():
         nros_bi = []
         nros_hip = []
         nros_poi = []
+        nros_emp = []
         for i in range(2000):
             x = uniforme(1, 20)
             nros_uni.append(x)
@@ -39,6 +40,9 @@ def menu():
             x = poisson(5)
             nros_poi.append(x)
 
+            x, pi = empirica()
+            nros_emp.append(x)
+
         print('\nCorrida', j+1)
         plot_uni(nros_uni, 1, 20)
         plot_exp(nros_exp, 20)
@@ -47,6 +51,7 @@ def menu():
         plot_bi(nros_bi, 10, 0.6)
         plot_hip(nros_hip, 40, 8, 0.25)
         plot_poi(nros_poi, 5)
+        plot_emp(nros_emp, pi)
 
 
 def plot_uni(nros, a, b):
@@ -146,6 +151,20 @@ def plot_poi(nros, p):
     print('Diferencia entre las varianzas:', abs(vx - vx_obs))
 
 
+def plot_emp(nros, pi):
+    ex = sum(pi[i]*(i+1) for i in range(len(pi))) #esperanza esperada
+    vx = sum((((i+1) - ex)**2)*pi[i] for i in range(len(pi)))
+    ex_obs = np.mean(nros)
+    vx_obs = np.var(nros)
+    print('\nDistribución Empírica')
+    print('Esperanza esperada:', ex)
+    print('Esperanza observada:', ex_obs)
+    print('Diferencia entre las esperanzas:', abs(ex - ex_obs))
+    print('Varianza esperada:', vx)
+    print('Varianza observada:', vx_obs)
+    print('Diferencia entre las varianzas:', abs(vx - vx_obs))
+
+
 def uniforme(a, b):
     r = random.random()
     x = a + (b - a) * r
@@ -224,12 +243,25 @@ def poisson(p):
     return x
 
 
+def empirica():
+    pi = [0.25, 0.2, 0.15, 0.3, 0.1]
+    pi_acum = []
+    pi_acum.append(pi[0])
+    for i in range(1, len(pi)):
+        pi_acum.append(pi_acum[i-1]+pi[i])
+    r = random.random()
+    if r <= pi_acum[0]:
+        x = 1
+    else:
+        for i in range(1, len(pi)):
+            if(r > pi_acum[i-1] and r <= pi_acum[i]):
+                x = i+1
+    return x, pi
+
+
 
 #main
 menu()
-
-
-
 
 
 
