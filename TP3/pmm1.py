@@ -40,8 +40,10 @@ def timing():
             next_event_type = i
     if next_event_type == 0:
         print("Lista vacia en tiempo %f" % thetime)
-        sys.exit(1)
-    thetime = min_time_next_event
+        return 1
+    else:
+        thetime = min_time_next_event
+        return 0
 
 
 def arrive():
@@ -102,7 +104,7 @@ def grafico_b_q(server_acum, time_acum, niq_acum):
 # main()
 mean_interarrival = 1    #lambda  
 mean_service = 2         #mu
-total_cus = 50           #total de demoras de clientes. condicion de finalizacion
+total_cus = 30           #total de demoras de clientes. condicion de finalizacion
 util_corridas, avgdel_corridas, avgniq_corridas, time_corridas = [], [], [], []     #guardo los rdos de cada corrida para sacar los proms
 
 print("Parametros: ====")
@@ -114,22 +116,24 @@ for i in range(5):
     init()
     time_acum, server_acum, niq_acum = [], [], []
     while num_custs_delayed < total_cus:
-        timing()
+        t = timing()
+        if t == 0:
         # update_time_avg_stats()
-        time_since_last_event = thetime - time_last_event
-        time_last_event = thetime
-        area_num_in_q = area_num_in_q + (num_in_q * time_since_last_event)
-        area_server_status = area_server_status + (server_status * time_since_last_event)
-        time_acum.append(thetime)
-        server_acum.append(server_status)
-        niq_acum.append(num_in_q)
+            time_since_last_event = thetime - time_last_event
+            time_last_event = thetime
+            area_num_in_q = area_num_in_q + (num_in_q * time_since_last_event)
+            area_server_status = area_server_status + (server_status * time_since_last_event)
+            time_acum.append(thetime)
+            server_acum.append(server_status)
+            niq_acum.append(num_in_q)
 
-        if next_event_type == 1:
-            arrive()
-        elif next_event_type == 2:
-            depart()
-        else:
-            sys.exit(4)
+            if next_event_type == 1:
+                arrive()
+            elif next_event_type == 2:
+                depart()
+
+        elif t == 1:
+            break
 
     # report()
     grafico_b_q(server_acum, time_acum, niq_acum)
