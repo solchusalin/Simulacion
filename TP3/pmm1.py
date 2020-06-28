@@ -71,11 +71,38 @@ def depart():
         time_next_event[2] = thetime + expon(1/mean_service)
 
 
+def grafico_barras(proms, prom_esp, tit, ylbl):
+    #promedios = [[prom_esp for i in range(5)], [proms]]
+    plt.title(tit)
+    plt.xlabel('Corrida')
+    plt.ylabel(ylbl)
+    plt.bar([0, 1, 2, 3, 4], [prom_esp for i in range(5)], label = "{} Esperada".format(ylbl), color = "r", width = 0.25)
+    plt.bar([0.25, 1.25, 2.25, 3.25, 4.25] , proms, label = "{} Observada".format(ylbl), color = "b", width = 0.25)
+    plt.xticks([0.15, 1.15, 2.15, 3.15, 4.15], ["1","2","3","4","5"])
+    plt.legend(loc='lower right', prop={'size': 7})
+    plt.show()
+
+
+def grafico_b_q(server_acum, time_acum, niq_acum):
+    plt.subplot(122)    
+    plt.step(time_acum, server_acum, color = "g")
+    plt.fill_between(time_acum, server_acum, step="pre", alpha=0.5, color = "g")
+    plt.title("Estado del servidor")
+    plt.xlabel("t")
+    plt.ylabel("B(t)")
+
+    plt.subplot(121)
+    plt.step(time_acum, niq_acum, color="m")
+    plt.fill_between(time_acum, niq_acum, step="pre", alpha=0.5, color="m")
+    plt.title("Longitud de la cola")
+    plt.xlabel("t")
+    plt.ylabel("Q(t)")
+    plt.show()
 
 # main()
 mean_interarrival = 1    #lambda  
 mean_service = 2         #mu
-total_cus = 10000           #total de demoras de clientes. condicion de finalizacion
+total_cus = 50           #total de demoras de clientes. condicion de finalizacion
 util_corridas, avgdel_corridas, avgniq_corridas, time_corridas = [], [], [], []     #guardo los rdos de cada corrida para sacar los proms
 
 print("Parametros: ====")
@@ -85,6 +112,7 @@ print("Numero maximo de demoras de clientes: %d" % total_cus)
 
 for i in range(5):
     init()
+    time_acum, server_acum, niq_acum = [], [], []
     while num_custs_delayed < total_cus:
         timing()
         # update_time_avg_stats()
@@ -92,6 +120,9 @@ for i in range(5):
         time_last_event = thetime
         area_num_in_q = area_num_in_q + (num_in_q * time_since_last_event)
         area_server_status = area_server_status + (server_status * time_since_last_event)
+        time_acum.append(thetime)
+        server_acum.append(server_status)
+        niq_acum.append(num_in_q)
 
         if next_event_type == 1:
             arrive()
@@ -101,6 +132,7 @@ for i in range(5):
             sys.exit(4)
 
     # report()
+    grafico_b_q(server_acum, time_acum, niq_acum)
     util_corridas.append(area_server_status / thetime)
     avgdel_corridas.append(total_of_delays / num_custs_delayed)
     avgniq_corridas.append(area_num_in_q / thetime) 
@@ -118,7 +150,7 @@ print("Promedios de demoras prom del cliente en cola:", np.mean(avgdel_corridas)
 print("Promedios de numeros promedio del cliente en cola:", np.mean(avgniq_corridas))
 print("Promedios de tiempos en que finaliza la simulacion:", np.mean(time_corridas))
 
-graficar(util_corridas, 0.5)
-graficar(avgdel_corridas, 0.5)
-graficar(avgniq_corridas, 0.5)
+grafico_barras(util_corridas, 0.5, 'Utilización del servidor', 'B(t)')
+grafico_barras(avgdel_corridas, 0.5, 'Demora promedio en cola', 'D(n)')
+grafico_barras(avgniq_corridas, 0.5, 'Longitud promedio de la cola', 'Q(t)')
 
