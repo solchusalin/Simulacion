@@ -13,7 +13,7 @@ def expon(rmean):
 
 def init():
     global Q_LIMIT, BUSY, IDLE, thetime, next_event_type, server_status, num_in_q, num_events, num_custs_delayed, area_num_in_q, area_server_status, time_arrival, time_last_event, time_next_event, total_of_delays
-    Q_LIMIT = 10000000
+    Q_LIMIT = 10
     BUSY = 1    #ocupado
     IDLE = 0    #desocupado
     thetime = 0     #reloj del simulacion
@@ -73,27 +73,37 @@ def depart():
         time_next_event[2] = thetime + expon(1/mean_service)
 
 
+def grafico_pn(probs, p):  
+    plt.title("Probabilidades de clientes en cola")
+    plt.xlabel('n')
+    plt.ylabel("Pn")
+    plt.bar([x for x in range(len(probs))], [(p**i)*(1-p) for i in range(len(probs))], label = "Pn Esperada", color = "pink", width = 0.25)
+    plt.bar([x+0.25 for x in range(len(probs))], probs, label = "Pn Observada", color = "c", width = 0.25)
+    plt.xticks([x+0.15 for x in range(len(probs))], [x for x in range(len(probs))])
+    plt.legend(loc='upper right', prop={'size': 7})
+    plt.show()
+
+
 def grafico_barras(proms, prom_esp, tit, ylbl):
-    #promedios = [[prom_esp for i in range(5)], [proms]]
     plt.title(tit)
     plt.xlabel('Corrida')
     plt.ylabel(ylbl)
-    plt.bar([0, 1, 2, 3, 4], [prom_esp for i in range(5)], label = "{} Esperada".format(ylbl), color = "r", width = 0.25)
-    plt.bar([0.25, 1.25, 2.25, 3.25, 4.25] , proms, label = "{} Observada".format(ylbl), color = "b", width = 0.25)
-    plt.xticks([0.15, 1.15, 2.15, 3.15, 4.15], ["1","2","3","4","5"])
+    plt.bar([x for x in range(len(proms))], [prom_esp for i in range(len(proms))], label = "{} Esperada".format(ylbl), color = "r", width = 0.25)
+    plt.bar([x+0.25 for x in range(len(proms))], proms, label = "{} Observada".format(ylbl), color = "b", width = 0.25)
+    plt.xticks([x+0.15 for x in range(len(proms))], [x for x in range(len(proms))])
     plt.legend(loc='lower right', prop={'size': 7})
     plt.show()
 
 
 def grafico_b_q(server_acum, time_acum, niq_acum):
-    plt.subplot(122)    
+    plt.subplot(211)    
     plt.step(time_acum, server_acum, color = "g")
     plt.fill_between(time_acum, server_acum, step="pre", alpha=0.5, color = "g")
     plt.title("Estado del servidor")
     plt.xlabel("t")
     plt.ylabel("B(t)")
 
-    plt.subplot(121)
+    plt.subplot(212)
     plt.step(time_acum, niq_acum, color="m")
     plt.fill_between(time_acum, niq_acum, step="pre", alpha=0.5, color="m")
     plt.title("Longitud de la cola")
@@ -101,18 +111,33 @@ def grafico_b_q(server_acum, time_acum, niq_acum):
     plt.ylabel("Q(t)")
     plt.show()
 
+
+def prob_deneg(probs):
+    n0 = probs[0]
+    print("Probabilidad de denegación de servicio con n = {0}: {1} %".format(0, (1-n0)*100))
+    n2 = probs[0] + probs[1] + probs[2]
+    print("Probabilidad de denegación de servicio con n = {0}: {1} %".format(2, (1-n2)*100))
+    n5 = probs[0] + probs[1] + probs[2] + probs[3] + probs[4] + probs[5]
+    print("Probabilidad de denegación de servicio con n = {0}: {1} %".format(5, (1-n5)*100))
+
 # main()
-mean_interarrival = 1    #lambda  
+mean_interarrival = 0.5    #lambda  
 mean_service = 2         #mu
-total_cus = 30           #total de demoras de clientes. condicion de finalizacion
-util_corridas, avgdel_corridas, avgniq_corridas, time_corridas = [], [], [], []     #guardo los rdos de cada corrida para sacar los proms
+total_cus = 500           #total de demoras de clientes. condicion de finalizacion
+util_esp = mean_interarrival/mean_service
+lq_esp = util_esp**2/(1-util_esp)
+wq_esp = lq_esp/mean_interarrival
+ws_esp = wq_esp + 1/mean_service
+ls_esp = mean_interarrival*ws_esp
+den_serv = []
+util_corridas, wq_corridas, lq_corridas, time_corridas, ws_corridas, ls_corridas, pn_corridas, niq_prob, niq_cont = [], [], [], [], [], [], [], [], [0]*50    #guardo los rdos de cada corrida para sacar los proms
 
 print("Parametros: ====")
 print("Tiempo medio entre arrivos: %.3f minutos" % (1/mean_interarrival))
 print("Tiempo medio de servicio: %.3f minutos" % (1/mean_service))
 print("Numero maximo de demoras de clientes: %d" % total_cus)
 
-for i in range(5):
+for i in range(10):
     init()
     time_acum, server_acum, niq_acum = [], [], []
     while num_custs_delayed < total_cus:
@@ -121,15 +146,16 @@ for i in range(5):
         # update_time_avg_stats()
             time_since_last_event = thetime - time_last_event
             time_last_event = thetime
-            area_num_in_q = area_num_in_q + (num_in_q * time_since_last_event)
-            area_server_status = area_server_status + (server_status * time_since_last_event)
             time_acum.append(thetime)
             server_acum.append(server_status)
             niq_acum.append(num_in_q)
+            area_num_in_q = area_num_in_q + (num_in_q * time_since_last_event)
+            area_server_status = area_server_status + (server_status * time_since_last_event)
 
             if next_event_type == 1:
                 arrive()
             elif next_event_type == 2:
+                niq_cont[num_in_q] += 1
                 depart()
 
         elif t == 1:
@@ -137,24 +163,46 @@ for i in range(5):
 
     # report()
     grafico_b_q(server_acum, time_acum, niq_acum)
+    ls_corridas.append(mean_interarrival * ((total_of_delays / num_custs_delayed) + (1/mean_service)))
+    ws_corridas.append((total_of_delays / num_custs_delayed) + (1/mean_service))
     util_corridas.append(area_server_status / thetime)
-    avgdel_corridas.append(total_of_delays / num_custs_delayed)
-    avgniq_corridas.append(area_num_in_q / thetime) 
+    wq_corridas.append(total_of_delays / num_custs_delayed)
+    lq_corridas.append(area_num_in_q / thetime) 
     time_corridas.append(thetime)
     print("\nReporte %d: ====" % (i+1))
     print("Cantidad de clientes que completaron demora %d" % num_custs_delayed)
-    print("Demora promedio del cliente en cola %.3f minutos" % (total_of_delays / num_custs_delayed))
-    print("Numero promedio del cliente en cola %.3f" % (area_num_in_q / thetime))
-    print("Utilizacion del servidor %.3f " % (area_server_status / thetime))
-    print("Tiempo en que finaliza la simulacion %.3f" % thetime)
+    print("Tiempo promedio en el sistema %.3f" % ws_corridas[i]) #Ws
+    print("Tiempo promedio en cola %.3f minutos" % wq_corridas[i])   #Wq
+    print("Numero promedio de clientes en el sistema %.3f" % ls_corridas[i]) #Ls
+    print("Numero promedio de clientes en cola %.3f" % lq_corridas[i])   #Lq
+    print("Utilizacion del servidor %.3f " % util_corridas[i])    #p
+
+
+for j in range(len(niq_cont)):
+    if niq_cont[j] > 0:
+        niq_prob.append(niq_cont[j]/sum(niq_cont))
 
 print("\nPromedios de las corridas: ====")
 print("Promedios de utilidad del servidor: ", np.mean(util_corridas))
-print("Promedios de demoras prom del cliente en cola:", np.mean(avgdel_corridas))
-print("Promedios de numeros promedio del cliente en cola:", np.mean(avgniq_corridas))
-print("Promedios de tiempos en que finaliza la simulacion:", np.mean(time_corridas))
+print("Promedios de tiempos promedio en cola:", np.mean(wq_corridas))
+print("Promedios de numeros promedio de clientes en cola:", np.mean(lq_corridas))
+print("Promedios de tiempos en el sistema:", np.mean(ws_corridas))
+print("Promedios de numeros promedio de clientes en el sistema:", np.mean(ls_corridas))
+for j in range(len(niq_prob)):
+    print('Probabilidad de que haya {0} clientes en cola: {1} %'.format(j, niq_prob[j]*100))  #Pn
+print("Prob acumulada: ", sum(niq_prob))
 
-grafico_barras(util_corridas, 0.5, 'Utilización del servidor', 'B(t)')
-grafico_barras(avgdel_corridas, 0.5, 'Demora promedio en cola', 'D(n)')
-grafico_barras(avgniq_corridas, 0.5, 'Longitud promedio de la cola', 'Q(t)')
+print("\nValores esperados: ====")
+print("Utilidad del servidor: ",util_esp)
+print("Tiempo promedio en cola:", wq_esp)
+print("Numero promedio de clientes en cola:",lq_esp)
+print("Tiempo en el sistema:", ws_esp)
+print("Numero promedio de clientes en el sistema:", ls_esp)
 
+#prob_deneg(niq_prob)
+grafico_pn(niq_prob, util_esp)
+grafico_barras(util_corridas, util_esp, 'Utilización del servidor', 'B(t)')  #p
+grafico_barras(wq_corridas, wq_esp, 'Tiempo promedio en cola', 'Dq(n)')    #Wq
+grafico_barras(lq_corridas, lq_esp, 'Longitud promedio de la cola', 'Q(t)')    #Lq
+grafico_barras(ws_corridas, ws_esp, 'Tiempo promedio en el sistema', 'Ds(n)')    #Ws
+grafico_barras(ls_corridas, ls_esp, 'Longitud promedio en el sistema', 'S(t)')   #Ls
