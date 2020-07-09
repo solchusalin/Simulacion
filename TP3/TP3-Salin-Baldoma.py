@@ -112,14 +112,29 @@ def grafico_b_q(server_acum, time_acum, niq_acum):
     plt.show()
 
 
-def prob_deneg(probs):
-    n0 = probs[0]
-    print("Probabilidad de denegación de servicio con n = {0}: {1} %".format(0, (1-n0)*100))
-    n2 = probs[0] + probs[1] + probs[2]
-    print("Probabilidad de denegación de servicio con n = {0}: {1} %".format(2, (1-n2)*100))
-    n5 = probs[0] + probs[1] + probs[2] + probs[3] + probs[4] + probs[5]
-    print("Probabilidad de denegación de servicio con n = {0}: {1} %".format(5, (1-n5)*100))
+def prob_deneg(probs, ro):
+    n_obs, n_esp = [], []
+    n_obs.append(1 - probs[0])
+    n_esp.append(ro)
+    for j in [2, 5, 10, 50]:
+        n_esp.append(1 - sum((ro)**i * (1-ro) for i in range (0, j)))
+        n_obs.append(1 - sum(probs[i] for i in range (0, j)))
+        
+    print("Prob denegacion de servicio observadas:", n_obs)
+    print("Prob denegacion de servicio esperadas:", n_esp)
+    
+    plt.title("Probabilidades de denegación de servicio")
+    plt.xlabel('n')
+    plt.ylabel('Pd')
+    plt.bar([x for x in range(len(n_esp))], n_esp, label = "Pd Esperada", color = "pink", width = 0.25)
+    plt.bar([x+0.25 for x in range(len(n_esp))], n_obs, label = "Pd Observada", color = "c", width = 0.25)
+    plt.xticks([x+0.15 for x in range(len(n_obs))], ['0', '2', '5', '10', '50'])
+    plt.legend(loc='lower right', prop={'size': 7})
+    plt.show()
 
+
+    
+    
 # main()
 mean_interarrival = 0.5    #lambda  
 mean_service = 2         #mu
@@ -179,8 +194,7 @@ for i in range(10):
 
 
 for j in range(len(niq_cont)):
-    if niq_cont[j] > 0:
-        niq_prob.append(niq_cont[j]/sum(niq_cont))
+    niq_prob.append(niq_cont[j]/sum(niq_cont))
 
 print("\nPromedios de las corridas: ====")
 print("Promedios de utilidad del servidor: ", np.mean(util_corridas))
@@ -189,7 +203,8 @@ print("Promedios de numeros promedio de clientes en cola:", np.mean(lq_corridas)
 print("Promedios de tiempos en el sistema:", np.mean(ws_corridas))
 print("Promedios de numeros promedio de clientes en el sistema:", np.mean(ls_corridas))
 for j in range(len(niq_prob)):
-    print('Probabilidad de que haya {0} clientes en cola: {1} %'.format(j, niq_prob[j]*100))  #Pn
+    if niq_prob[j] > 0:
+        print('Probabilidad de que haya {0} clientes en cola: {1} %'.format(j, niq_prob[j]*100))  #Pn
 print("Prob acumulada: ", sum(niq_prob))
 
 print("\nValores esperados: ====")
@@ -199,7 +214,7 @@ print("Numero promedio de clientes en cola:",lq_esp)
 print("Tiempo en el sistema:", ws_esp)
 print("Numero promedio de clientes en el sistema:", ls_esp)
 
-#prob_deneg(niq_prob)
+prob_deneg(niq_prob, util_esp)
 grafico_pn(niq_prob, util_esp)
 grafico_barras(util_corridas, util_esp, 'Utilización del servidor', 'B(t)')  #p
 grafico_barras(wq_corridas, wq_esp, 'Tiempo promedio en cola', 'Dq(n)')    #Wq
