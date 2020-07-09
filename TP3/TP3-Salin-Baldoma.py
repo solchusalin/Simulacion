@@ -73,13 +73,37 @@ def depart():
         time_next_event[2] = thetime + expon(1/mean_service)
 
 
-def grafico_pn(probs, p):  
+def grafico_pn(probs, p): 
+    n_obs, n_esp, probs2 = [], [], []
+    n_obs.append(1 - probs[0])
+    n_esp.append(p)
+    for j in [2, 5, 10, 50]:
+        n_esp.append(1 - sum((p)**i *(1-p) for i in range (0, j)))
+        n_obs.append(1 - sum(probs[i] for i in range (0, j)))
+        
+    print("Prob denegacion de servicio observadas:", n_obs)
+    print("Prob denegacion de servicio esperadas:", n_esp)
+    
+    plt.subplot(122)
+    plt.title("Probabilidades de denegación de servicio")
+    plt.xlabel('n')
+    plt.ylabel('Pd')
+    plt.bar([x for x in range(len(n_esp))], n_esp, label = "Pd Esperada", color = "pink", width = 0.25)
+    plt.bar([x+0.25 for x in range(len(n_esp))], n_obs, label = "Pd Observada", color = "c", width = 0.25)
+    plt.xticks([x+0.15 for x in range(len(n_obs))], ['0', '2', '5', '10', '50'])
+    plt.legend(loc='upper right', prop={'size': 7})
+
+    for i in range(len(probs)):
+        if probs[i] > 0:
+            probs2.append(probs[i])
+
+    plt.subplot(121) 
     plt.title("Probabilidades de clientes en cola")
     plt.xlabel('n')
     plt.ylabel("Pn")
-    plt.bar([x for x in range(len(probs))], [(p**i)*(1-p) for i in range(len(probs))], label = "Pn Esperada", color = "pink", width = 0.25)
-    plt.bar([x+0.25 for x in range(len(probs))], probs, label = "Pn Observada", color = "c", width = 0.25)
-    plt.xticks([x+0.15 for x in range(len(probs))], [x for x in range(len(probs))])
+    plt.bar([x for x in range(len(probs2))], [(p**i)*(1-p) for i in range(len(probs2))], label = "Pn Esperada", color = "pink", width = 0.25)
+    plt.bar([x+0.25 for x in range(len(probs2))], probs2, label = "Pn Observada", color = "c", width = 0.25)
+    plt.xticks([x+0.15 for x in range(len(probs2))], [x for x in range(len(probs2))])
     plt.legend(loc='upper right', prop={'size': 7})
     plt.show()
 
@@ -110,28 +134,6 @@ def grafico_b_q(server_acum, time_acum, niq_acum):
     plt.xlabel("t")
     plt.ylabel("Q(t)")
     plt.show()
-
-
-def prob_deneg(probs, ro):
-    n_obs, n_esp = [], []
-    n_obs.append(1 - probs[0])
-    n_esp.append(ro)
-    for j in [2, 5, 10, 50]:
-        n_esp.append(1 - sum((ro)**i * (1-ro) for i in range (0, j)))
-        n_obs.append(1 - sum(probs[i] for i in range (0, j)))
-        
-    print("Prob denegacion de servicio observadas:", n_obs)
-    print("Prob denegacion de servicio esperadas:", n_esp)
-    
-    plt.title("Probabilidades de denegación de servicio")
-    plt.xlabel('n')
-    plt.ylabel('Pd')
-    plt.bar([x for x in range(len(n_esp))], n_esp, label = "Pd Esperada", color = "pink", width = 0.25)
-    plt.bar([x+0.25 for x in range(len(n_esp))], n_obs, label = "Pd Observada", color = "c", width = 0.25)
-    plt.xticks([x+0.15 for x in range(len(n_obs))], ['0', '2', '5', '10', '50'])
-    plt.legend(loc='lower right', prop={'size': 7})
-    plt.show()
-
 
     
     
@@ -214,7 +216,6 @@ print("Numero promedio de clientes en cola:",lq_esp)
 print("Tiempo en el sistema:", ws_esp)
 print("Numero promedio de clientes en el sistema:", ls_esp)
 
-prob_deneg(niq_prob, util_esp)
 grafico_pn(niq_prob, util_esp)
 grafico_barras(util_corridas, util_esp, 'Utilización del servidor', 'B(t)')  #p
 grafico_barras(wq_corridas, wq_esp, 'Tiempo promedio en cola', 'Dq(n)')    #Wq
